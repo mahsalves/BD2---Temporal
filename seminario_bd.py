@@ -16,7 +16,7 @@ INFLUX_TOKEN = "28QxqHAQiHbnnEt0-1xYiEsjhiQJh0lCJgEvuY4zLCweK3b3eMKTesJucuPv-S_F
 INFLUX_ORG = "Seminario_BD2"
 INFLUX_BUCKET = "Monitoramento_temp"
 
-print("--- Inicializando Conexão InfluxDB ---")
+print("--- Inicializando Conexao InfluxDB ---")
 try:
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
@@ -29,7 +29,7 @@ except Exception as e:
 
 def simular_e_escrever_dados():
     """Simula dados de temperatura (Série Temporal) e os escreve no InfluxDB."""
-    print("\n--- 2. Simulação e Ingestão de Dados (Escrita) ---")
+    print("\n--- 2. Simulacao e Ingestao de Dados (Escrita) ---")
     
     # tempo
     current_time = datetime.now(UTC)
@@ -67,14 +67,14 @@ def simular_e_escrever_dados():
         points_to_write.append(point_cozinha)
         
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points_to_write)
-    print(f"✅ {len(points_to_write)} pontos de dados (série temporal) enviados com sucesso.")
+    print(f"{len(points_to_write)} pontos de dados (serie temporal) enviados com sucesso.")
     print("------------------------------------------------------------------")
 
 # consulta e análise
 
 def consultar_e_analisar_dados():
     """Consulta os dados usando Flux para aplicar agregação (downsampling)."""
-    print("\n--- 3. Consulta e Análise de Dados (Leitura com Flux) ---")
+    print("\n--- 3. Consulta e Analise de Dados (Leitura com Flux) ---")
 
    # consulta flux: filtra dados da sala e calcula a média a cada 10 minutos
     flux_query = f"""
@@ -93,10 +93,10 @@ def consultar_e_analisar_dados():
         result_df = query_api.query_data_frame(org=INFLUX_ORG, query=flux_query)
         
         if result_df.empty:
-            print("⚠️ Aviso: Nenhuma série temporal agregada encontrada com a consulta Flux.")
+            print("Aviso: Nenhuma serie temporal agregada encontrada com a consulta Flux.")
             return
 
-        print("Dados de Série Temporal Agregados pelo InfluxDB (Downsampling):")
+        print("Dados de Serie Temporal Agregados pelo InfluxDB (Downsampling):")
         print("---------------------------------------------------------------")
         
         # seleciona e exibe as colunas relevantes do resultado
@@ -104,9 +104,17 @@ def consultar_e_analisar_dados():
              # trata o caso de múltiplas tabelas retornadas
             result_df = pd.concat(result_df)
             
-        print(result_df[['_time', '_value']].to_markdown(index=False))
+        # exibir colunas disponíveis
+        print("\nColunas retornadas pelo InfluxDB:")
+        print(result_df.columns)
 
-        print(f"\n✅ Consulta Flux executada. O InfluxDB processou {len(result_df)} pontos agregados.")
+        # selecionar apenas tempo + campos de valor
+        value_cols = [c for c in result_df.columns if c not in ["result","table","_start","_stop","_measurement","sensor_id","localizacao"]]
+
+        print("\nDados agregados:")
+        print(result_df[value_cols].to_markdown(index=False))
+
+        print(f"\nConsulta Flux executada. O InfluxDB processou {len(result_df)} pontos agregados.")
         
     except Exception as e:
         print(f"Erro ao executar a consulta Flux. Verifique a sintaxe da query: {e}")
@@ -122,5 +130,5 @@ if __name__ == "__main__":
     
     consultar_e_analisar_dados()
 
-    print("\n--- Fim da Simulação ---")
+    print("\n--- Fim da Simulacao ---")
     client.close()

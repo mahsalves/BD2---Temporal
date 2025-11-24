@@ -1,3 +1,8 @@
+import warnings
+from influxdb_client.client.warnings import MissingPivotFunction
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.simplefilter("ignore", MissingPivotFunction)
+
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from datetime import datetime, timezone
@@ -32,12 +37,12 @@ def inserir_ponto_ao_vivo(local, sensor_id, valor_temperatura):
     
     # insere
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=ponto_novo)
-    print(f"✅ Ponto {valor_temperatura}°C inserido no sensor {sensor_id} ({local}).")
+    print(f"Ponto {valor_temperatura}°C inserido no sensor {sensor_id} ({local}).")
 
 
 def verificar_insercao_recente(query_api, sensor_id):
     """Consulta os dados dos últimos 5 minutos filtrando pelo sensor ID."""
-    print("\n--- VERIFICANDO INSERÇÃO RECENTE ---")
+    print("\n--- VERIFICANDO INSERCAO RECENTE ---")
 
     # a consulta flux buscará apenas o ponto que acabou de entrar
     flux_query = f'''
@@ -52,19 +57,19 @@ def verificar_insercao_recente(query_api, sensor_id):
         result_df = query_api.query_data_frame(org=INFLUX_ORG, query=flux_query)
         
         if result_df.empty:
-            print("Aviso: O ponto inserido não foi encontrado na consulta recente.")
+            print("Aviso: O ponto inserido nao foi encontrado na consulta recente.")
         else:
-            print(f"✅ Ponto ENCONTRADO para o sensor {sensor_id}:")
+            print(f"Ponto ENCONTRADO para o sensor {sensor_id}:")
             # exibe o timestamp e o valor
             print(result_df[['_time', '_value']])
             
     except Exception as e:
-        print(f"Erro na verificação: {e}")
+        print(f"Erro na verificacao: {e}")
 
 # demonstração
 
 if __name__ == "__main__":
-    print("\n--- INSERÇÃO EM TEMPO REAL ---")
+    print("\n--- INSERCAO EM TEMPO REAL ---")
     
     local = "auditorio"
     sensor = "LIVE-01"
